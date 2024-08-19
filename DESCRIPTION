@@ -1,0 +1,18 @@
+Package: wbfirmadaptationtool
+Title: WB Firms and Climate Adaptation Policy Toolkit
+Version: 0.0.0.9000
+Authors@R: 
+    person("Nolan", "Young Zabala", , "youngnolan1@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: A World Bank tool which combines satellite weather data with geocoded firm surveys to measure the impact of climate change on firms and recognize investment climate policies mitigating firms’ exposure to climate risks. 
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+Imports:
+  haven,
+  dplyr,
+  sandwich,
+  ggplot2,
+  stargazer
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
