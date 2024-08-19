@@ -6,6 +6,7 @@ Follow these steps to start using the package:
 Please see the example_analysis.R script for an outline of how to use the package's functions. You can download the script to your device and then edit the function inputs (which survey to look at, which variables to include in the regressions, etc) to suit your needs.
 
 Surveys you can analyze:
+
   [1] "Afghanistan2014"              "Albania2013"                 
   [3] "Albania2019"                  "Argentina2010"               
   [5] "Argentina2017"                "Armenia2013"                 
