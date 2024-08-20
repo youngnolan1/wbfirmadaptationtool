@@ -11,7 +11,7 @@
 #'
 #' @return The regression-ready dataset as a dataframe (save to object and use as input in other wbfirmadaptation functions).
 #'
-#' @note "master.dta" and "GPS_Comprehensive_April_03_2024-MASKED.dta" must be saved in project directory, with those exact names.
+#' @note "master.dta" (WBES geo-linked master dataset) must be saved in the project directory.
 #'
 #' @export
 prep_reg_data <- function(data_directory, survey){
@@ -20,14 +20,6 @@ prep_reg_data <- function(data_directory, survey){
   master <- haven::read_dta(paste0(data_directory, "/master.dta")) %>%
     dplyr::filter(country == survey) %>%
     dplyr::mutate(idstd = as.numeric(idstd))
-
-  # Read coords file and subset
-  coords <- haven::read_dta(paste0(data_directory, "/GPS_Comprehensive_April_03_2024-MASKED.dta")) %>%
-    dplyr::filter(survey == survey) %>%
-    dplyr::select(idstd, lat_mask, lon_mask)
-
-  # Merge the two
-  master <- dplyr::left_join(master, coords, by = "idstd")
 
   # Define list of relevant regression vars
   regvars <- c("country", "idstd", "wt", # Identifier and weights
