@@ -139,10 +139,7 @@ prep_reg_data <- function(data_directory, survey){
     mutate(insufficient_water_supply = case_when(
       insufficient_water_supply == 1 ~ 1,
       insufficient_water_supply == 2 ~ 0
-    )) %>%
-    mutate(top_manager_female = case_when(
-      top_manager_female == 1 ~ 1,
-      top_manager_female == 2 ~ 0))
+    ))
 
   # Convert obstacle vars to dummies
   obstacle_vars <- grep("^obstacle", names(reg_master), value = TRUE)
