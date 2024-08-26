@@ -18,5 +18,5 @@ The regression-ready dataset as a dataframe (save to object and use as input in 
 The prep_reg_data() function processes the raw master dataset and produces a regression-ready dataset.
 }
 \note{
-"master.dta" and "GPS_Comprehensive_April_03_2024-MASKED.dta" must be saved in project directory, with those exact names.
+"master.dta" (WBES geo-linked master dataset) must be saved in the project directory.
 }

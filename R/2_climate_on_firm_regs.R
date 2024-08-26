@@ -7,7 +7,7 @@ reg_model_logged <- function(reg_data, outcome, indep_climate_var, level_or_devi
   reg_data_final <- reg_data[complete.cases(reg_data[[outcome]]), ]
 
   # Build the formula: firm_performance = climate_var + sector
-  formula <- as.formula(paste("log(", outcome, ") ~ ", indep_climate_var, " + sector"))
+  formula <- as.formula(paste("log(", outcome, ") ~ ", indep_climate_var, " + sector + region"))
 
   # Run the regression
   model <- lm(formula,
@@ -24,7 +24,7 @@ reg_model_not_logged <- function(reg_data, outcome, indep_climate_var){
   reg_data_final <- reg_data[complete.cases(reg_data[[outcome]]), ]
 
   # Build the formula: firm_performance = climate_var + sector
-  formula <- as.formula(paste(outcome, " ~ ", indep_climate_var, " + sector"))
+  formula <- as.formula(paste(outcome, " ~ ", indep_climate_var, " + sector + region"))
 
   # Run the regression
   model <- lm(formula,
@@ -183,9 +183,9 @@ climate_on_firm_regs_charts <- function(data, level_or_deviation, output_directo
   }
 
   # Define file paths for each plot
-  hd_plot_path <- file.path(output_directory, "heat_days_plot.png")
-  temp_plot_path <- file.path(output_directory, "temperature_plot.png")
-  tempvol_plot_path <- file.path(output_directory, "temperature_volatility_plot.png")
+  hd_plot_path <- file.path(output_directory, paste0("heat_days_plot_", level_or_deviation, ".png"))
+  temp_plot_path <- file.path(output_directory, paste0("temperature_plot_", level_or_deviation, ".png"))
+  tempvol_plot_path <- file.path(output_directory, paste0("temperature_volatility_plot_", level_or_deviation, ".png"))
 
   # Save the plots
   ggsave(hd_plot_path, plot = hd_plot, width = 12, height = 7, bg = "white")
@@ -219,9 +219,9 @@ climate_on_firm_regs_tables <- function(data, level_or_deviation, output_directo
   tempvol_var <- ifelse(level_or_deviation == "deviation", "tempvolatility_deviation", "tempvolatility")
 
   # Create the tables
-  hd_table <- reg_table(data, heat_days_var, paste0("Number of Heat Days (", level_or_deviation, ")"), paste0(output_directory, "/heat_days_table.html"))
-  temp_table <- reg_table(data, temp_var, paste0("Temperature (", level_or_deviation, ")"), paste0(output_directory, "/temp_table.html"))
-  tempvol_table <- reg_table(data, tempvol_var, paste0("Temperature Volatility (", level_or_deviation, ")"), paste0(output_directory, "/tempvol_table.html"))
+  hd_table <- reg_table(data, heat_days_var, paste0("Number of Heat Days (", level_or_deviation, ")"), paste0(output_directory, "/heat_days_table_", level_or_deviation, ".html"))
+  temp_table <- reg_table(data, temp_var, paste0("Temperature (", level_or_deviation, ")"), paste0(output_directory, "/temp_table_", level_or_deviation, ".html"))
+  tempvol_table <- reg_table(data, tempvol_var, paste0("Temperature Volatility (", level_or_deviation, ")"), paste0(output_directory, "/tempvol_table_", level_or_deviation, ".html"))
 
 }
 
