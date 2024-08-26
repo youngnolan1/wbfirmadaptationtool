@@ -2,7 +2,7 @@
 interaction_reg <- function(reg_data, firm_outcome, climate_var, firm_characteristic){
 
   # Build the formula: log(sales) = climate_var + firm_characteristic + climate_var:firm_characteristic + sector + region
-  formula <- as.formula(paste(firm_outcome, " ~ ", climate_var, " + ", firm_characteristic, " + ", climate_var, ":", firm_characteristic, " + sector"))
+  formula <- as.formula(paste(firm_outcome, " ~ ", climate_var, " + ", firm_characteristic, " + ", climate_var, ":", firm_characteristic, " + sector + region"))
 
   # Run the regression
   model <- lm(formula,
