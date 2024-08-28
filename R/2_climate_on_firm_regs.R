@@ -85,7 +85,7 @@ reg_chart <- function(reg_data, indep_climate_var, plot_title){
     geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, color = "black") +
     theme_minimal() +
     theme(axis.title.x = element_blank(),
-          axis.text.x = element_text(size = 14),
+          axis.text.x = element_text(size = 14, angle = 45),
           axis.title.y = element_blank(),
           plot.title = element_blank())
 
