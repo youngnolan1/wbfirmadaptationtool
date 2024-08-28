@@ -83,11 +83,10 @@ reg_chart <- function(reg_data, indep_climate_var, plot_title){
   plot <- ggplot(graph_data, aes(x = firm_outcome, y = coefficient)) +
     geom_bar(stat = "identity", fill = "skyblue", color = "black") +
     geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, color = "black") +
-    labs(y = "Regression Coefficient", title = paste0("Effect of ",  plot_title, " on Firm Outcomes (", reg_data$country, ")")) +
     theme_minimal() +
-    theme(axis.title.x = element_blank(),
-          axis.title.y = element_text(size = 14),
-          plot.title = element_text(hjust = 0.5, size = 14))
+    theme(axis.title.x = element_text(size = 14),
+          axis.title.y = element_blank(),
+          plot.title = element_blank())
 
   return(plot)
 }
