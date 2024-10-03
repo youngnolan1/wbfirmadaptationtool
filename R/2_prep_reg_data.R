@@ -152,6 +152,18 @@ prep_reg_data <- function(subset_data){
   reg_master[reg_master == -8] <- NA
   reg_master[reg_master == -7] <- NA
 
+  # Define logged dependent vars
+  reg_master <- reg_master %>%
+    mutate(sales_log = log(sales)) %>%
+    mutate(sales_per_worker_log = log(sales_per_worker)) %>%
+    mutate(workers_log = log(workers)) %>%
+    mutate(wages_log = log(wages)) %>%
+    mutate(capital_utilization_log = log(capital_utilization)) %>%
+    mutate(energy_intensity_log = log(energy_intensity))
+
+  # Create grid_ids for unique values of geo-codes
+  reg_master <- reg_master %>%
+    mutate(grid_id = dense_rank(temp_deviation))
 
   return(reg_master)
 
