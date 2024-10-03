@@ -1,28 +1,19 @@
-#' @title Process master geo-linked WBES dataset to make it regression-ready.
+#' @title Process subset of the master geo-linked WBES dataset to make it regression-ready.
 #'
 #' @description
-#' The prep_reg_data() function processes the raw master dataset and produces a regression-ready dataset.
+#' The prep_reg_data() function processes the subset of the raw master dataset (produced by data_subset()) and produces a regression-ready dataset.
 #'
-#' @import haven
 #' @import dplyr
 #'
-#' @param data_directory A string of the user's directory containing the raw data.
-#' @param survey A string structured CountryYear indicating the survey the user wants to analyze.
+#' @param subset_data An R dataframe containing the subset of the raw master dataset to be analyzed.
 #'
 #' @return The regression-ready dataset as a dataframe (save to object and use as input in other wbfirmadaptation functions).
 #'
-#' @note "master.dta" (WBES geo-linked master dataset) must be saved in the project directory.
-#'
 #' @export
-prep_reg_data <- function(data_directory, survey){
-
-  # Read master geo-linked WBES data and subset
-  master <- haven::read_dta(paste0(data_directory, "/master.dta")) %>%
-    dplyr::filter(country == survey) %>%
-    dplyr::mutate(idstd = as.numeric(idstd))
+prep_reg_data <- function(subset_data){
 
   # Define list of relevant regression vars
-  regvars <- c("country", "idstd", "wt", # Identifier and weights
+  regvars <- c("country", "countryname", "year", "idstd", "wt", "region", # Identifier and weights
                "d2", "l1", "n2a", "n2b", "f1", "c6", "k4", # Firm performance indicators
                "heat_days", "hd80", "mean_2m_temperature", "mean80", "sd_2m_temperature", "sd80", # Climate variables
                "a2x", "stra_sector", # Region and sector
@@ -50,6 +41,7 @@ prep_reg_data <- function(data_directory, survey){
     rename(lr_temp = mean80) %>%
     rename(tempvolatility = sd_2m_temperature) %>%
     rename(lr_tempvolatility = sd80) %>%
+    rename(world_region = region) %>%
     rename(region = a2x) %>%
     rename(sector = stra_sector) %>%
     rename(year_founded = b5) %>%
@@ -101,7 +93,7 @@ prep_reg_data <- function(data_directory, survey){
 
   # Age
   reg_master <- reg_master %>%
-    mutate(age = 2022 - year_founded) %>%
+    mutate(age = year - year_founded) %>%
     mutate(young = case_when(
       age <= 5 ~ 1,
       age > 5 ~ 0
