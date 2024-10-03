@@ -55,6 +55,6 @@ interaction_reg_table <- function(reg_data, firm_outcome, climate_var, firm_char
   # Use stargazer to combine all models into a results table
   sink(tempfile())
   stargazer(models, type = "text", title = paste0("Regression Results - Interactions (", reg_data$country, ")"), out = output_directory)
-  sink()  # Reset to console output
+  sink()
 }
 

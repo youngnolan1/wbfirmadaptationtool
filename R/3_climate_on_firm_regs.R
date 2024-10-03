@@ -11,8 +11,7 @@ reg_model_logged <- function(reg_data, outcome, indep_climate_var, level_or_devi
 
   # Run the regression
   model <- lm(formula,
-              data = reg_data_final,
-              weights = wt)
+              data = reg_data_final)
 
   return(model)
 }
