@@ -1,17 +1,36 @@
 # Internal regression function
-reg_model <- function(reg_data, outcome, indep_climate_var){
+reg_model <- function(reg_data, outcome, indep_climate_var) {
 
+  # Filter for complete cases in the outcome variable
   reg_data_final <- reg_data[complete.cases(reg_data[[outcome]]), ]
 
-  # Build the formula: firm_performance = climate_var + sector
-  formula <- as.formula(paste(outcome, " ~ ", indep_climate_var, " + sector + countryname + year"))
+  # Initialize the base formula with the climate variable
+  formula_components <- c(indep_climate_var)
+
+  # Conditionally add sector if there is more than one unique value
+  if(length(unique(reg_data_final$sector)) > 1) {
+    formula_components <- c(formula_components, "sector")
+  }
+
+  # Conditionally add countryname if there is more than one unique value
+  if(length(unique(reg_data_final$countryname)) > 1) {
+    formula_components <- c(formula_components, "countryname")
+  }
+
+  # Conditionally add year if there is more than one unique value
+  if(length(unique(reg_data_final$year)) > 1) {
+    formula_components <- c(formula_components, "year")
+  }
+
+  # Build the final formula dynamically
+  formula <- as.formula(paste(outcome, " ~ ", paste(formula_components, collapse = " + ")))
 
   # Run the regression
-  model <- lm(formula,
-              data = reg_data_final)
+  model <- lm(formula, data = reg_data_final)
 
   return(model)
 }
+
 
 
 # Internal summary chart function
