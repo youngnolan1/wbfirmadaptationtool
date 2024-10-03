@@ -27,7 +27,7 @@ prep_reg_data <- function(subset_data){
   )
 
   # Subset and rename these vars
-  reg_master <- master %>%
+  reg_master <- subset_data %>%
     dplyr::select(all_of(regvars)) %>%
     rename(sales = d2) %>%
     rename(workers = l1) %>%
