@@ -8,31 +8,32 @@ interaction_reg_table(
   reg_data,
   firm_outcome,
   climate_var,
+  level_or_difference,
   firm_characteristics,
+  html_or_tex,
+  filename,
   output_directory
 )
 }
 \arguments{
-\item{firm_outcome}{Dependent variable passed as a string, options include: "log(sales)", "log(sales_per_worker)", "log(wages)", "log(workers)", "log(capital_utilization)", "log(energy_intensity)", "power_outages", "invest_fixed_asset_dummy".}
+\item{firm_outcome}{Dependent variable passed as a string, see guidance note for options.}
 
-\item{climate_var}{Independent climate variable passed as a string, options include: \cr
-Levels - "heat_days", "temp", "tempvolatility" \cr
-Deviations - "heat_days_deviation", "temp_deviation", "tempvolatility_deviation" \cr}
+\item{climate_var}{Independent climate variable passed as a string, options include "Temperature", "TemperatureVolatility", and "HeatDays".}
 
-\item{firm_characteristics}{Independent firm characteristic/policy variable passed as a string or list of strings, options include: \cr
-Basic characteristics: "region", "young", "small", "market_served" \cr
-Business environment: "obstacle_accesstofinance", "obstacle_businesslicensing", "obstacle_corruption", "obstacle_traderegulations", "obstacle_laborregulations", "freq_meetings_tax_officials", "pcnt_time_dealing_regulations", "total_annual_informal_payments" \cr
-Banking: "checking_savings_account", "overdraft_facility", "financial_inst_credit" \cr
-Infrastructure: "length_power_outage", "pcnt_sales_losses_dueto_power_outages", "freq_water_shortages", "length_water_shortages", "obstacle_electricity", "obstacle_transport", "insufficient_water_supply" \cr
-Supply chains: "inputs_domestic" \cr
-Management: "manager_experience_yrs", "top_manager_female" \cr}
+\item{level_or_difference}{Either "Level" or "Difference"; indicates whether for the given climate variable, its survey year level or the difference of this level from its long-run mean should be used.}
 
-\item{output_directory}{File path for where table will be saved, ending in .html e.g. "C:/Users/Nolan/Project/table.html".}
+\item{firm_characteristics}{Independent firm characteristic/policy variable passed as a string or list of strings, see guidance note for options.}
+
+\item{html_or_tex}{Either "html" or "tex"; indicates whether the table will be saved in .html or .tex format.}
+
+\item{filename}{Name of the file to be saved, excluding the file extension.}
+
+\item{output_directory}{File path for where the table will be saved, ending in .html e.g. "C:/Users/Nolan/Project/table.html".}
 
 \item{data}{Regression-ready dataset prepared by 1_prep_reg_data.}
 }
 \value{
-HTML file containing a regression results table for the variables provided.
+Regression results table for the variables provided saved in the output_directory.
 }
 \description{
 Exports a regression result table featuring interactions between the firm characteristics and climate variables provided.

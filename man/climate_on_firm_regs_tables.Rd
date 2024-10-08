@@ -4,12 +4,19 @@
 \alias{climate_on_firm_regs_tables}
 \title{Tables showing impact of climate variables on firm outcomes}
 \usage{
-climate_on_firm_regs_tables(data, level_or_deviation, output_directory)
+climate_on_firm_regs_tables(
+  data,
+  level_or_difference,
+  html_or_tex,
+  output_directory
+)
 }
 \arguments{
 \item{data}{Regression-ready dataset prepared by 1_prep_reg_data.}
 
-\item{level_or_deviation}{Either "level" or "deviation"; indicates whether for the given climate variable, its survey year level or the deviation of this level from its long-run mean should be used.}
+\item{level_or_difference}{Either "Level" or "Difference"; indicates whether for the given climate variable, its survey year level or the difference of this level from its long-run mean should be used.}
+
+\item{html_or_tex}{Either "html" or "tex"; indicates whether the tables will be saved in .html or .tex format.}
 
 \item{output_directory}{Folder path for where tables will be saved.}
 }

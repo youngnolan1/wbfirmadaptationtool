@@ -2,24 +2,25 @@
 reg_model <- function(reg_data, outcome, indep_climate_var) {
 
   # Filter for complete cases in the outcome variable
+  reg_data[[outcome]][is.infinite(reg_data[[outcome]])] <- NA
   reg_data_final <- reg_data[complete.cases(reg_data[[outcome]]), ]
 
   # Initialize the base formula with the climate variable
   formula_components <- c(indep_climate_var)
 
-  # Conditionally add sector if there is more than one unique value
-  if(length(unique(reg_data_final$sector)) > 1) {
-    formula_components <- c(formula_components, "sector")
+  # Conditionally add Sector if there is more than one unique value
+  if(length(unique(reg_data_final$Sector)) > 1) {
+    formula_components <- c(formula_components, "Sector")
   }
 
-  # Conditionally add countryname if there is more than one unique value
-  if(length(unique(reg_data_final$countryname)) > 1) {
-    formula_components <- c(formula_components, "countryname")
+  # Conditionally add Country if there is more than one unique value
+  if(length(unique(reg_data_final$Country)) > 1) {
+    formula_components <- c(formula_components, "Country")
   }
 
-  # Conditionally add year if there is more than one unique value
-  if(length(unique(reg_data_final$year)) > 1) {
-    formula_components <- c(formula_components, "year")
+  # Conditionally add Year if there is more than one unique value
+  if(length(unique(reg_data_final$Year)) > 1) {
+    formula_components <- c(formula_components, "as.factor(Year)")
   }
 
   # Build the final formula dynamically
@@ -37,9 +38,9 @@ reg_model <- function(reg_data, outcome, indep_climate_var) {
 reg_chart <- function(reg_data, indep_climate_var, plot_title){
 
   # Firm outcomes
-  firm_outcomes <- c("sales", "sales_per_worker", "wages", "workers",
-                    "capital_utilization", "energy_intensity",
-                    "power_outages", "invest_fixed_assets_dummy")
+  firm_outcomes <- c("SalesLog", "SalesPerWorkerLog", "WagesLog", "WorkersLog",
+                    "CapitalUtilizationLog", "EnergyIntensityLog",
+                    "PowerOutagesBinary", "InvestBinary")
 
   # Empty dataframe for results
   graph_data <- data.frame(
@@ -49,8 +50,10 @@ reg_chart <- function(reg_data, indep_climate_var, plot_title){
     upper_ci = numeric()
   )
 
+  # Loop through firm outcomes and run reg_model for each of them, saving the results
   for (outcome in firm_outcomes) {
 
+    # Run model for the relevant outcome
     model <- reg_model(reg_data, outcome, indep_climate_var)
 
     # Extract coefficient and CI
@@ -59,72 +62,86 @@ reg_chart <- function(reg_data, indep_climate_var, plot_title){
                           lower_ci = confint(model)[indep_climate_var, 1],
                           upper_ci = confint(model)[indep_climate_var, 2])
 
+    # Append to dataframe
     graph_data <- rbind(graph_data, results)
 
   }
 
-  plot <- ggplot(graph_data, aes(x = firm_outcome, y = coefficient)) +
-    geom_bar(stat = "identity", fill = "skyblue", color = "black") +
-    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, color = "black") +
-    theme_minimal() +
-    theme(axis.title.x = element_blank(),
-          axis.text.x = element_text(size = 14, angle = 45),
-          axis.title.y = element_blank(),
-          plot.title = element_blank())
+  # Plot the coefficients and confidence intervals for each firm outcome together on one chart
+  plot <- ggplot(graph_data, aes(x = firm_outcome, y = coefficient)) + # Initialize ggplot with 'graph_data' dataframe, mapping 'firm_outcome' to the x-axis and 'coefficient' to the y-axis
+    geom_bar(stat = "identity", fill = "skyblue", color = "black") + # Add a bar plot with 'coefficient' values as the height of the bars, fill color as sky blue, and bar borders in black
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, color = "black") + # Add error bars based on lower and upper confidence intervals ('lower_ci' and 'upper_ci'), with bar width of 0.2
+    theme_minimal() + # Apply the 'minimal' theme for a clean, simple look with minimal gridlines and axis lines
+    theme(axis.title.x = element_blank(), # Remove the x-axis title (label)
+          axis.text.x = element_text(size = 14, angle = 45), # Customize x-axis text: set font size to 14 and rotate labels 45 degrees
+          axis.title.y = element_blank(), # Remove the y-axis title (label)
+          plot.title = element_blank()) # Remove the plot title
+
+
 
   return(plot)
 }
 
 
 # Internal results table function
-reg_table <- function(reg_data, indep_climate_var, table_title, directory){
+reg_table <- function(reg_data, indep_climate_var, table_title, html_or_tex, directory){
 
   # Sales (log(d2))
-  s <- reg_model(reg_data, "sales_log", indep_climate_var)
-  s_se <- sqrt(diag(vcovHC(s, type = "HC1", cluster = ~reg_data$grid_id)))
+  s <- reg_model(reg_data, "SalesLog", indep_climate_var)
+  s_se <- sqrt(diag(vcovHC(s, type = "HC1", cluster = ~reg_data$GridID)))
 
   # Productivity (log(d2/l1))
-  spw <- reg_model(reg_data, "sales_per_worker_log", indep_climate_var)
-  spw_se <- sqrt(diag(vcovHC(s, type = "HC1", cluster = ~reg_data$grid_id)))
+  spw <- reg_model(reg_data, "SalesPerWorkerLog", indep_climate_var)
+  spw_se <- sqrt(diag(vcovHC(s, type = "HC1", cluster = ~reg_data$GridID)))
 
   # Wages (log(n2a))
-  w <- reg_model(reg_data, "wages_log", indep_climate_var)
-  w_se <- sqrt(diag(vcovHC(w, type = "HC1", cluster = ~reg_data$grid_id)))
+  w <- reg_model(reg_data, "WagesLog", indep_climate_var)
+  w_se <- sqrt(diag(vcovHC(w, type = "HC1", cluster = ~reg_data$GridID)))
 
   # Employment (log(l1))
-  e <- reg_model(reg_data, "workers_log", indep_climate_var)
-  e_se <- sqrt(diag(vcovHC(e, type = "HC1", cluster = ~reg_data$grid_id)))
+  e <- reg_model(reg_data, "WorkersLog", indep_climate_var)
+  e_se <- sqrt(diag(vcovHC(e, type = "HC1", cluster = ~reg_data$GridID)))
 
   # Capital utilization (f1)
-  capu <- reg_model(reg_data, "capital_utilization_log", indep_climate_var)
-  capu_se <- sqrt(diag(vcovHC(capu, type = "HC1", cluster = ~reg_data$grid_id)))
-
-  # Power outages (c6)
-  pwr <- reg_model(reg_data, "power_outages", indep_climate_var)
-  pwr_se <- sqrt(diag(vcovHC(pwr, type = "HC1", cluster = ~reg_data$grid_id)))
+  capu <- reg_model(reg_data, "CapitalUtilizationLog", indep_climate_var)
+  capu_se <- sqrt(diag(vcovHC(capu, type = "HC1", cluster = ~reg_data$GridID)))
 
   # Energy intensity (n2b / d2)
-  ei <- reg_model(reg_data, "energy_intensity", indep_climate_var)
-  ei_se <- sqrt(diag(vcovHC(ei, type = "HC1", cluster = ~reg_data$grid_id)))
+  ei <- reg_model(reg_data, "EnergyIntensityLog", indep_climate_var)
+  ei_se <- sqrt(diag(vcovHC(ei, type = "HC1", cluster = ~reg_data$GridID)))
+
+  # Power outages (c6)
+  pwr <- reg_model(reg_data, "PowerOutagesBinary", indep_climate_var)
+  pwr_se <- sqrt(diag(vcovHC(pwr, type = "HC1", cluster = ~reg_data$GridID)))
 
   # Investment in fixed assets (k4)
-  inv <- reg_model(reg_data, "invest_fixed_assets_dummy", indep_climate_var)
-  inv_se <- sqrt(diag(vcovHC(inv, type = "HC1", cluster = ~reg_data$grid_id)))
+  inv <- reg_model(reg_data, "InvestBinary", indep_climate_var)
+  inv_se <- sqrt(diag(vcovHC(inv, type = "HC1", cluster = ~reg_data$GridID)))
 
-  # Generate the regression results table
-  sink(tempfile())
-  stargazer(s, spw, w, e, capu, pwr, ei, inv,
-            type = "html",
-            se = c(list(s_se), list(spw_se), list(w_se), list(e_se), list(capu_se), list(pwr_se), list(ei_se), list(inv_se)),
-            out = directory,
-            title = paste0("Effect of ", table_title, " on Firm Performance"),
+  # The note under the regression results table changes depending on level or difference
+  if (grepl("Level", table_title)){
+    stargazer_note <- c("Each firm performance variable is regressed on the given climate variable, along with fixed effects (FE) which depend on data coverage. The climate variable is in levels - the local average in the FY of the relevant survey. We report standard errors clustered at the climate variable level (corresponding to climate data grids) in parentheses.")
+  } else {
+    stargazer_note <- c("Each firm performance variable is regressed on the given climate variable, along with fixed effects (FE) which depend on data coverage. The climate variable is in differences - the local average temperature in the FY of the relevant survey minus the local long-run mean, calculated for the 1980-2008 period. We report standard errors clustered at the climate variable level (corresponding to climate data grids) in parentheses.")
+  }
+
+  # Use stargazer to combine all models into a results table with clustered SEs
+  sink(tempfile()) # Prevent direct output
+  on.exit(sink(), add = TRUE) # Ensure sink is turned off on exit
+  stargazer(s, spw, w, e, capu, ei, pwr, inv, # Combine all models into one table
+            type = html_or_tex, # Create either html or tex table
+            se = c(list(s_se), list(spw_se), list(w_se), list(e_se), list(capu_se), list(ei_se), list(pwr_se), list(inv_se)), # Clustered SEs
+            out = directory, # Save file to defined path
+            title = paste0("Effect of ", table_title, " on Firm Performance"), # Define table title
             dep.var.labels = c("Sales (log)", "Productivity (log)", "Wages (log)",
                                "Employment (log)", "Capital Utilization (log)",
-                               "Power Outages", "Energy Intensity (log)", "Investment in Fixed Assets"),
-            omit.stat = c("f", "ser"),
-            align = TRUE,
-            no.space = TRUE)
-  sink()
+                               "Energy Intensity (log)", "Power Outages",
+                               "Investment in Fixed Assets"),
+            omit.stat = c("f", "ser"), # Customize which statistics to omit
+            align = TRUE, # Align columns for better readability
+            no.space = TRUE, # Eliminate extra spaces between lines
+            notes = stargazer_note, # Add stargazer note defined above
+            notes.align = "l") # Align note to left
 }
 
 
@@ -140,7 +157,7 @@ reg_table <- function(reg_data, indep_climate_var, table_title, directory){
 #' @import ggplot2
 #'
 #' @param data Regression-ready dataset prepared by 1_prep_reg_data.
-#' @param level_or_deviation Either "level" or "deviation"; indicates whether for the given climate variable, its survey year level or the deviation of this level from its long-run mean should be used.
+#' @param level_or_difference Either "Level" or "Difference"; indicates whether for the given climate variable, its survey year level or the difference of this level from its long-run mean should be used.
 #' @param output_directory Folder path for where charts will be saved.
 #'
 #' @return One chart for heat days, one for temperature, and one for temperature volatility saved in the output_directory.
@@ -148,17 +165,17 @@ reg_table <- function(reg_data, indep_climate_var, table_title, directory){
 #' @note Remember to use forward slashes "/" in the folder path provided.
 #'
 #' @export
-climate_on_firm_regs_charts <- function(data, level_or_deviation, output_directory){
+climate_on_firm_regs_charts <- function(data, level_or_difference, output_directory){
 
-  # Define the climate variable based on the level_or_deviation argument
-  heat_days_var <- ifelse(level_or_deviation == "deviation", "heat_days_deviation", "heat_days")
-  temp_var <- ifelse(level_or_deviation == "deviation", "temp_deviation", "temp")
-  tempvol_var <- ifelse(level_or_deviation == "deviation", "tempvolatility_deviation", "tempvolatility")
+  # Define the climate variable based on the level_or_difference argument
+  heat_days_var <- ifelse(level_or_difference == "Difference", "HeatDaysDifference", "HeatDays")
+  temp_var <- ifelse(level_or_difference == "Difference", "TemperatureDifference", "Temperature")
+  tempvol_var <- ifelse(level_or_difference == "Difference", "TemperatureVolatilityDifference", "TemperatureVolatility")
 
   # Create the plots
-  hd_plot <- reg_chart(data, heat_days_var, paste0("Number of Heat Days (", level_or_deviation, ")"))
-  temp_plot <- reg_chart(data, temp_var, paste0("Temperature (", level_or_deviation, ")"))
-  tempvol_plot <- reg_chart(data, tempvol_var, paste0("Temperature Volatility (", level_or_deviation, ")"))
+  hd_plot <- reg_chart(data, heat_days_var, paste0("Number of Heat Days (", level_or_difference, ")"))
+  temp_plot <- reg_chart(data, temp_var, paste0("Temperature (", level_or_difference, ")"))
+  tempvol_plot <- reg_chart(data, tempvol_var, paste0("Temperature Volatility (", level_or_difference, ")"))
 
   # Ensure the output directory exists
   if (!dir.exists(output_directory)) {
@@ -166,9 +183,9 @@ climate_on_firm_regs_charts <- function(data, level_or_deviation, output_directo
   }
 
   # Define file paths for each plot
-  hd_plot_path <- file.path(output_directory, paste0("heat_days_plot_", level_or_deviation, ".png"))
-  temp_plot_path <- file.path(output_directory, paste0("temperature_plot_", level_or_deviation, ".png"))
-  tempvol_plot_path <- file.path(output_directory, paste0("temperature_volatility_plot_", level_or_deviation, ".png"))
+  hd_plot_path <- file.path(output_directory, paste0("HeatDays_plot_", level_or_difference, ".png"))
+  temp_plot_path <- file.path(output_directory, paste0("Temperature_plot_", level_or_difference, ".png"))
+  tempvol_plot_path <- file.path(output_directory, paste0("TemperatureVolatility_plot_", level_or_difference, ".png"))
 
   # Save the plots
   ggsave(hd_plot_path, plot = hd_plot, width = 12, height = 7, bg = "white")
@@ -186,7 +203,8 @@ climate_on_firm_regs_charts <- function(data, level_or_deviation, output_directo
 #' @import stargazer
 #'
 #' @param data Regression-ready dataset prepared by 1_prep_reg_data.
-#' @param level_or_deviation Either "level" or "deviation"; indicates whether for the given climate variable, its survey year level or the deviation of this level from its long-run mean should be used.
+#' @param level_or_difference Either "Level" or "Difference"; indicates whether for the given climate variable, its survey year level or the difference of this level from its long-run mean should be used.
+#' @param html_or_tex Either "html" or "tex"; indicates whether the tables will be saved in .html or .tex format.
 #' @param output_directory Folder path for where tables will be saved.
 #'
 #' @return One table for heat days, one for temperature, and one for temperature volatility saved in the output_directory.
@@ -194,17 +212,16 @@ climate_on_firm_regs_charts <- function(data, level_or_deviation, output_directo
 #' @note Remember to use forward slashes "/" in the folder path provided.
 #'
 #' @export
-climate_on_firm_regs_tables <- function(data, level_or_deviation, output_directory){
+climate_on_firm_regs_tables <- function(data, level_or_difference, html_or_tex, output_directory){
 
-  # Define the climate variable based on the level_or_deviation argument
-  heat_days_var <- ifelse(level_or_deviation == "deviation", "heat_days_deviation", "heat_days")
-  temp_var <- ifelse(level_or_deviation == "deviation", "temp_deviation", "temp")
-  tempvol_var <- ifelse(level_or_deviation == "deviation", "tempvolatility_deviation", "tempvolatility")
+  # Define the climate variable based on the level_or_difference argument
+  heat_days_var <- ifelse(level_or_difference == "Difference", "HeatDaysDifference", "HeatDays")
+  temp_var <- ifelse(level_or_difference == "Difference", "TemperatureDifference", "Temperature")
+  tempvol_var <- ifelse(level_or_difference == "Difference", "TemperatureVolatilityDifference", "TemperatureVolatility")
 
   # Create the tables
-  hd_table <- reg_table(data, heat_days_var, paste0("Number of Heat Days (", level_or_deviation, ")"), paste0(output_directory, "/heat_days_table_", level_or_deviation, ".html"))
-  temp_table <- reg_table(data, temp_var, paste0("Temperature (", level_or_deviation, ")"), paste0(output_directory, "/temp_table_", level_or_deviation, ".html"))
-  tempvol_table <- reg_table(data, tempvol_var, paste0("Temperature Volatility (", level_or_deviation, ")"), paste0(output_directory, "/tempvol_table_", level_or_deviation, ".html"))
-
+  hd_table <- reg_table(data, heat_days_var, paste0("Number of Heat Days (", level_or_difference, ")"), html_or_tex, paste0(output_directory, "/HeatDays_table_", level_or_difference, ".", html_or_tex))
+  temp_table <- reg_table(data, temp_var, paste0("Temperature (", level_or_difference, ")"), html_or_tex, paste0(output_directory, "/Temperature_table_", level_or_difference, ".", html_or_tex))
+  tempvol_table <- reg_table(data, tempvol_var, paste0("Temperature Volatility (", level_or_difference, ")"), html_or_tex, paste0(output_directory, "/TemperatureVolatility_table_", level_or_difference, ".", html_or_tex))
 }
 

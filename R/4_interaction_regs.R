@@ -1,14 +1,40 @@
 # Internal interaction regression function
 interaction_reg <- function(reg_data, firm_outcome, climate_var, firm_characteristic){
 
-  # Build the formula: log(sales) = climate_var + firm_characteristic + climate_var:firm_characteristic + sector + region
-  formula <- as.formula(paste(firm_outcome, " ~ ", climate_var, " + ", firm_characteristic, " + ", climate_var, ":", firm_characteristic, " + sector + region"))
+  # Create interaction term as a string
+  interaction_term <- paste(climate_var, "*", firm_characteristic)
+
+  # Initialize the base formula with the climate variable and the firm characteristic interaction
+  formula_components <- c(interaction_term)
+
+  # Conditionally add Sector if there is more than one unique value
+  if(length(unique(reg_data$Sector)) > 1) {
+    formula_components <- c(formula_components, "Sector")
+  }
+
+  # Conditionally add Country if there is more than one unique value
+  if(length(unique(reg_data$Country)) > 1) {
+    formula_components <- c(formula_components, "Country")
+  }
+
+  # Conditionally add Year if there is more than one unique value
+  if(length(unique(reg_data$Year)) > 1) {
+    formula_components <- c(formula_components, "as.factor(Year)")
+  }
+
+  # Build the final formula dynamically
+  formula <- as.formula(paste(firm_outcome, " ~ ", paste(formula_components, collapse = " + ")))
 
   # Run the regression
   model <- lm(formula,
               data = reg_data)
 
-  return(model)
+  # Calculate clustered standard errors
+  se <- sqrt(diag(vcovHC(model, type = "HC1", cluster = ~reg_data$GridID)))
+
+  # Return both the model and the standard errors
+  return(list(model = model, se = se))
+
 }
 
 # -------------------------- EXPORT FUNCTIONS ----------------------------------
@@ -21,40 +47,63 @@ interaction_reg <- function(reg_data, firm_outcome, climate_var, firm_characteri
 #' @import stargazer
 #'
 #' @param data Regression-ready dataset prepared by 1_prep_reg_data.
-#' @param firm_outcome Dependent variable passed as a string, options include: "log(sales)", "log(sales_per_worker)", "log(wages)", "log(workers)", "log(capital_utilization)", "log(energy_intensity)", "power_outages", "invest_fixed_asset_dummy".
-#' @param climate_var Independent climate variable passed as a string, options include: \cr
-#' Levels - "heat_days", "temp", "tempvolatility" \cr
-#' Deviations - "heat_days_deviation", "temp_deviation", "tempvolatility_deviation" \cr
-#' @param firm_characteristics Independent firm characteristic/policy variable passed as a string or list of strings, options include: \cr
-#' Basic characteristics: "region", "young", "small", "market_served" \cr
-#' Business environment: "obstacle_accesstofinance", "obstacle_businesslicensing", "obstacle_corruption", "obstacle_traderegulations", "obstacle_laborregulations", "freq_meetings_tax_officials", "pcnt_time_dealing_regulations", "total_annual_informal_payments" \cr
-#' Banking: "checking_savings_account", "overdraft_facility", "financial_inst_credit" \cr
-#' Infrastructure: "length_power_outage", "pcnt_sales_losses_dueto_power_outages", "freq_water_shortages", "length_water_shortages", "obstacle_electricity", "obstacle_transport", "insufficient_water_supply" \cr
-#' Supply chains: "inputs_domestic" \cr
-#' Management: "manager_experience_yrs", "top_manager_female" \cr
-#' @param output_directory File path for where table will be saved, ending in .html e.g. "C:/Users/Nolan/Project/table.html".
+#' @param firm_outcome Dependent variable passed as a string, see guidance note for options.
+#' @param climate_var Independent climate variable passed as a string, options include "Temperature", "TemperatureVolatility", and "HeatDays".
+#' @param level_or_difference Either "Level" or "Difference"; indicates whether for the given climate variable, its survey year level or the difference of this level from its long-run mean should be used.
+#' @param firm_characteristics Independent firm characteristic/policy variable passed as a string or list of strings, see guidance note for options.
+#' @param html_or_tex Either "html" or "tex"; indicates whether the table will be saved in .html or .tex format.
+#' @param filename Name of the file to be saved, excluding the file extension.
+#' @param output_directory File path for where the table will be saved, ending in .html e.g. "C:/Users/Nolan/Project/table.html".
 #'
-#' @return HTML file containing a regression results table for the variables provided.
+#' @return Regression results table for the variables provided saved in the output_directory.
 #'
 #' @note Remember to use forward slashes "/" in the folder path.
 #'
 #' @export
-interaction_reg_table <- function(reg_data, firm_outcome, climate_var, firm_characteristics, output_directory){
+interaction_reg_table <- function(reg_data, firm_outcome, climate_var, level_or_difference, firm_characteristics, html_or_tex, filename, output_directory){
 
-  # Initialize an empty list to store the models
-  models <- list()
+  # Define climate var - if Level, leave as is; if Difference, append Difference to climate_var name
+  climate_var <- ifelse(level_or_difference == "Level", climate_var, paste0(climate_var, "Difference"))
 
-  # Loop through each firm characteristic in the list
+  # Initialize empty lists for models and standard errors
+  models <- list()  # Store the models
+  ses <- list()     # Store the clustered standard errors
+
+  # Loop through firm characteristics, run interaction_reg, and store model and SE
   for (characteristic in firm_characteristics) {
 
-    model <- interaction_reg(reg_data, firm_outcome, climate_var, characteristic)
+    # Run the interaction regression for each characteristic
+    result <- interaction_reg(reg_data, firm_outcome, climate_var, characteristic)
 
-    models[[characteristic]] <- model
+    # Extract the model and standard errors from the result
+    models[[characteristic]] <- result$model
+    ses[[characteristic]] <- result$se
   }
 
-  # Use stargazer to combine all models into a results table
-  sink(tempfile())
-  stargazer(models, type = "text", title = paste0("Regression Results - Interactions (", reg_data$country, ")"), out = output_directory)
-  sink()
+  # Adjust output file name based on type
+  output_path <- paste0(output_directory, "/", filename, ".", html_or_tex)
+
+  # The note under the regression results table changes depending on level or difference
+  if (level_or_difference == "Level"){
+    stargazer_note <- c("Each firm performance variable is regressed on the given climate variable and its interaction with the given firm characteristic or business environment variable, along with fixed effects (FE) which depend on data coverage. The climate variable is in levels - the local average in the FY of the relevant survey. We report standard errors clustered at the climate variable level (corresponding to climate data grids) in parentheses.")
+  } else {
+    stargazer_note <- c("Each firm performance variable is regressed on the given climate variable and its interaction with the given firm characteristic or business environment variable, along with fixed effects (FE) which depend on data coverage. The climate variable is in differences - the local average temperature in the FY of the relevant survey minus the local long-run mean, calculated for the 1980-2008 period. We report standard errors clustered at the climate variable level (corresponding to climate data grids) in parentheses.")
+  }
+
+  # Use stargazer to combine all models into a results table with clustered SEs
+  sink(tempfile())  # Prevent direct output
+  on.exit(sink(), add = TRUE)  # Ensure sink is turned off on exit
+
+  stargazer(models, # Combine all models into one table
+            type = html_or_tex, # Create either html or tex table
+            se = ses,  # Pass the list of standard errors to stargazer
+            title = paste0("Interactions Results"), # Define table title
+            out = output_path, # Save file to path defined above
+            omit.stat = c("f", "ser"),  # Customize which statistics to omit
+            align = TRUE,  # Align columns for better readability
+            no.space = TRUE,  # Eliminate extra spaces between lines
+            notes = stargazer_note, # Add stargazer note defined above
+            notes.align = "l") # Align note to left
+
 }
 

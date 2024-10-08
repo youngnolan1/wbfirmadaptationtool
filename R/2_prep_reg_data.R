@@ -18,123 +18,260 @@ prep_reg_data <- function(subset_data){
                "heat_days", "hd80", "mean_2m_temperature", "mean80", "sd_2m_temperature", "sd80", # Climate variables
                "a2x", "stra_sector", # Region and sector
                "b5", "size", "e1", # Age, size, and market served
-               "k30", "j30c", "j30f", "d30b", "l30a", # Business environment variables
-               "k6", "k7", "k8", # Banking variables
-               "c8", "c9a", "c16", "c17", "c30a", "d30a", "c15", # Infrastructure variables
-               "d12a", # Supply chains
-               "j4", "j2", "j7b", # Freq meetings tax officials / % time spent complying with regulations / informal payments
-               "b7", "b7a"  # Management variables
+               "k30", "j30c", "j30f", "d30b", "l30a", "sec_ind", # Business environment variables
+               "k6", "k7", "k8", "acc_fin", # Banking variables
+               "c8", "c9a", "c16", "c17", "c30a", "d30a", "c15", "elec", # Infrastructure variables
+               "d12a", "exp_ind", # Value chains
+               "j4", "j2", "j7b", "reg_ind", # Freq meetings tax officials / % time spent complying with regulations / informal payments
+               "b7", "b7a", "ed_ind"  # Management and labor variables
   )
+
+  # Define zeroes and NAs correctly
+  subset_data$a14y[subset_data$a14y == 2301] <- 2013
+  subset_data$b6b[subset_data$b6b == -8 | subset_data$b6b == -6] <- NA
+  subset_data$b5[subset_data$b5 < 1800] <- NA
+  subset_data$e1[subset_data$e1 == -9 | subset_data$e1 == -8 | subset_data$e1 == 4] <- NA
+  subset_data$n2b[subset_data$n2b < 0] <- NA
+  subset_data$n2a[subset_data$n2a < 0] <- NA
+  subset_data$l1[subset_data$l1 < 0] <- NA
+  subset_data$n5a[subset_data$n5a < 0] <- NA
+  subset_data$n5b[subset_data$n5b < 0] <- NA
+  subset_data$d2[subset_data$d2 < 0] <- NA
+  subset_data$b6b[subset_data$b6b == -8 | subset_data$b6b == -6] <- NA
+  subset_data$i1[subset_data$i1 < 0 | subset_data$i1 == 5] <- NA
+  subset_data$i1[subset_data$i1 == 2] <- 0
+  subset_data$i3[subset_data$i3 < 0] <- NA
+  subset_data$i30[subset_data$i30 == -7] <- 0
+  subset_data$i30[subset_data$i30 < 0] <- NA
+  subset_data$d3a[subset_data$d3a < 0] <- NA
+  subset_data$d3b[subset_data$d3b < 0] <- NA
+  subset_data$d3c[subset_data$d3c < 0] <- NA
+  subset_data$d30b[subset_data$d30b == -7] <- 0
+  subset_data$d30b[subset_data$d30b < 0] <- NA
+  subset_data$j10[subset_data$j10 < 0] <- NA
+  subset_data$k30[subset_data$k30 == -7] <- 0
+  subset_data$k30[subset_data$k30 < 0] <- NA
+  subset_data$k3a[subset_data$k3a < 0] <- NA
+  subset_data$k3hd[subset_data$k3hd < 0] <- NA
+  subset_data$k4[subset_data$k4 < 0] <- NA
+  subset_data$k4[subset_data$k4 == 2] <- 0
+  subset_data$k6[subset_data$k6 < 0] <- NA
+  subset_data$k6[subset_data$k6 == 2] <- 0
+  subset_data$k8[subset_data$k8 < 0] <- NA
+  subset_data$k8[subset_data$k8 == 2] <- 0
+  subset_data$c6[subset_data$c6 < 0] <- NA
+  subset_data$c6[subset_data$c6 == 2] <- 0
+  subset_data$c30a[subset_data$c30a == -7] <- 0
+  subset_data$c30a[subset_data$c30a < 0] <- NA
+  subset_data$j3[subset_data$j3 < 0] <- NA
+  subset_data$h30[subset_data$h30 == -7] <- 0
+  subset_data$h30[subset_data$h30 < 0] <- NA
+  subset_data$b7[subset_data$b7 < 0] <- NA
+  subset_data$l10[subset_data$l10 < 0] <- NA
+  subset_data$l10[subset_data$l10 == 2] <- 0
+  subset_data$l30b[subset_data$l30b == -7] <- 0
+  subset_data$l30b[subset_data$l30b < 0] <- NA
+  subset_data$b1[subset_data$b1 < 0 | subset_data$b1 == 7] <- NA
+  subset_data$b2a[subset_data$b2a < 0] <- NA
+  subset_data$b2b[subset_data$b2b < 0] <- NA
+  subset_data$b2c[subset_data$b2c < 0] <- NA
+  subset_data$b2d[subset_data$b2d < 0] <- NA
+  subset_data$b3[subset_data$b3 < 0] <- NA
+  subset_data$b4[subset_data$b4 < 0] <- NA
+  subset_data$b4[subset_data$b4 == 2] <- 0
+  subset_data$b4a[subset_data$b4a < 0] <- NA
+  subset_data$b7a[subset_data$b7a < 0] <- NA
+  subset_data$b7a[subset_data$b7a == 2] <- 0
+  subset_data$b8[subset_data$b8 < 0] <- NA
+  subset_data$b8[subset_data$b8 == 2] <- 0
+  subset_data$c10[subset_data$c10 < 0] <- NA
+  subset_data$c10[subset_data$c10 == 2] <- 0
+  subset_data$c9a[subset_data$c9a < 0] <- NA
+  subset_data$c22b[subset_data$c22b < 0] <- NA
+  subset_data$c22b[subset_data$c22b == 2] <- 0
+  subset_data$d1a3[subset_data$d1a3 < 0 | subset_data$d1a3 == 5050] <- NA
+  subset_data$d6[subset_data$d6 == -7] <- 0
+  subset_data$d6[subset_data$d6 < 0] <- NA
+  subset_data$d7[subset_data$d7 == -7] <- 0
+  subset_data$d7[subset_data$d7 < 0] <- NA
+  subset_data$d10[subset_data$d10 < -7] <- NA
+  subset_data$d10[subset_data$d10 == -7] <- 0
+  subset_data$d11[subset_data$d11 == -7] <- 0
+  subset_data$d11[subset_data$d11 < 0] <- NA
+  subset_data$d12a[subset_data$d12a < 0] <- NA
+  subset_data$d12b[subset_data$d12b < 0] <- NA
+  subset_data$d16[subset_data$d16 < 0] <- NA
+  subset_data$d30a[subset_data$d30a == -7] <- 0
+  subset_data$d30a[subset_data$d30a < 0 | subset_data$d30a == 5] <- NA
+  subset_data$e11[subset_data$e11 < 0] <- NA
+  subset_data$e30[subset_data$e30 == -7] <- 0
+  subset_data$e30[subset_data$e30 < 0] <- NA
+  subset_data$f1[subset_data$f1 < 0] <- NA
+  subset_data$g30a[subset_data$g30a == -7] <- 0
+  subset_data$g30a[subset_data$g30a < 0] <- NA
+  subset_data$i2a[subset_data$i2a < 0] <- NA
+  subset_data$i3[subset_data$i3 < 0] <- NA
+  subset_data$i3[subset_data$i3 == 2] <- 0
+  subset_data$i4a[subset_data$i4a < 0] <- NA
+  subset_data$i30[subset_data$i30 == -7] <- 0
+  subset_data$i30[subset_data$i30 < 0] <- NA
+  subset_data$j2[subset_data$j2 < 0] <- NA
+  subset_data$j3[subset_data$j3 < 0] <- NA
+  subset_data$j3[subset_data$j3 == 2] <- 0
+  subset_data$j6[subset_data$j6 < 0] <- NA
+  subset_data$j6a[subset_data$j6a < 0 | subset_data$j6a == 79] <- NA
+  subset_data$j6a[subset_data$j6a == 2] <- 0
+  subset_data$j7a[subset_data$j7a < 0] <- NA
+  subset_data$j30a[subset_data$j30a == -7] <- 0
+  subset_data$j30a[subset_data$j30a < 0] <- NA
+  subset_data$j30b[subset_data$j30b == -7] <- 0
+  subset_data$j30b[subset_data$j30b < 0] <- NA
+  subset_data$j30c[subset_data$j30c == -7] <- 0
+  subset_data$j30c[subset_data$j30c < 0] <- NA
+  subset_data$j30e[subset_data$j30e == -7] <- 0
+  subset_data$j30e[subset_data$j30e < 0] <- NA
+  subset_data$j30f[subset_data$j30f == -7] <- 0
+  subset_data$j30f[subset_data$j30f < 0] <- NA
+  subset_data$k1c[subset_data$k1c < 0] <- NA
+  subset_data$k3a[subset_data$k3a < 0] <- NA
+  subset_data$k3bc[subset_data$k3bc < 0] <- NA
+  subset_data$k3e[subset_data$k3e < 0] <- NA
+  subset_data$k3f[subset_data$k3f < 0] <- NA
+  subset_data$k3hd[subset_data$k3hd < 0] <- NA
+  subset_data$k16[subset_data$k16 < 0] <- NA
+  subset_data$k16[subset_data$k16 == 2] <- 0
+  subset_data$k21[subset_data$k21 < 0] <- NA
+  subset_data$k21[subset_data$k21 == 2] <- 0
+  subset_data$l1[subset_data$l1 < 0] <- NA
+  subset_data$l2[subset_data$l2 < 0] <- NA
+  subset_data$l30a[subset_data$l30a == -7] <- 0
+  subset_data$l30a[subset_data$l30a < 0] <- NA
+  subset_data$l9a[subset_data$l9a < 0 | subset_data$l9a > 100] <- NA
+  subset_data$l9b[subset_data$l9b < 0] <- NA
+  subset_data$l12[subset_data$l12 < 0] <- NA
+
 
   # Subset and rename these vars
   reg_master <- subset_data %>%
     dplyr::select(all_of(regvars)) %>%
-    rename(sales = d2) %>%
-    rename(workers = l1) %>%
-    rename(wages = n2a) %>%
-    rename(electricity_cost = n2b) %>%
-    rename(capital_utilization = f1) %>%
-    rename(power_outages = c6) %>%
-    rename(invest_fixed_assets_dummy = k4) %>%
-    rename(lr_heat_days = hd80) %>%
-    rename(temp = mean_2m_temperature) %>%
-    rename(lr_temp = mean80) %>%
-    rename(tempvolatility = sd_2m_temperature) %>%
-    rename(lr_tempvolatility = sd80) %>%
-    rename(world_region = region) %>%
-    rename(region = a2x) %>%
-    rename(sector = stra_sector) %>%
-    rename(year_founded = b5) %>%
-    rename(market_served = e1) %>%
-    rename(obstacle_accesstofinance = k30) %>%
-    rename(obstacle_businesslicensing = j30c) %>%
-    rename(obstacle_corruption = j30f) %>%
-    rename(obstacle_traderegulations = d30b) %>%
-    rename(obstacle_laborregulations = l30a) %>%
-    rename(checking_savings_account = k6) %>%
-    rename(overdraft_facility = k7) %>%
-    rename(financial_inst_credit = k8) %>%
-    rename(length_power_outage = c8) %>%
-    rename(pcnt_sales_losses_dueto_power_outages = c9a) %>%
-    rename(freq_water_shortages = c16) %>%
-    rename(length_water_shortages = c17) %>%
-    rename(obstacle_electricity = c30a) %>%
-    rename(obstacle_transport = d30a) %>%
-    rename(insufficient_water_supply = c15) %>%
-    rename(inputs_domestic = d12a) %>%
-    rename(freq_meetings_tax_officials = j4) %>%
-    rename(pcnt_time_dealing_regulations = j2) %>%
-    rename(total_annual_informal_payments = j7b) %>%
-    rename(manager_experience_yrs = b7) %>%
-    rename(top_manager_female = b7a)
+    rename(Survey = country) %>%
+    rename(Country = countryname) %>%
+    rename(WorldRegion = region) %>%
+    rename(SubNationalRegion = a2x) %>%
+    rename(Sector = stra_sector) %>%
+    rename(Year = year) %>%
+    rename(Sales = d2) %>%
+    rename(Workers = l1) %>%
+    rename(Wages = n2a) %>%
+    rename(ElectricityCost = n2b) %>%
+    rename(CapitalUtilization = f1) %>%
+    rename(PowerOutagesBinary = c6) %>%
+    rename(InvestBinary = k4) %>%
+    rename(HeatDays = heat_days) %>%
+    rename(LongRunHeatDays = hd80) %>%
+    rename(Temperature = mean_2m_temperature) %>%
+    rename(LongRunTemperature = mean80) %>%
+    rename(TemperatureVolatility = sd_2m_temperature) %>%
+    rename(LongRunTemperatureVolatility = sd80) %>%
+    rename(YearFounded = b5) %>%
+    rename(Size = size) %>%
+    rename(MarketServed = e1) %>%
+    rename(AccessToFinance = k30) %>%
+    rename(BusinessLicensing = j30c) %>%
+    rename(Corruption = j30f) %>%
+    rename(TradeRegulations = d30b) %>%
+    rename(LaborRegulations = l30a) %>%
+    rename(CheckingOrSavingsAccount = k6) %>%
+    rename(OverdraftFacility = k7) %>%
+    rename(CreditFromFinancialInstitution = k8) %>%
+    rename(PowerOutagesLength = c8) %>%
+    rename(PowerOutagesSalesLosses = c9a) %>%
+    rename(WaterShortagesFrequency = c16) %>%
+    rename(WaterShortagesLength = c17) %>%
+    rename(ElectricityObstacle = c30a) %>%
+    rename(Transport = d30a) %>%
+    rename(InsufficientWaterSupply = c15) %>%
+    rename(DomesticInputs = d12a) %>%
+    rename(TaxOfficialsMeetings = j4) %>%
+    rename(RegulationsTimeSpent = j2) %>%
+    rename(InformalPayments = j7b) %>%
+    rename(ManagerialExperience = b7) %>%
+    rename(FemaleManager = b7a) %>%
+    rename(ElectricityIndex = elec) %>%
+    rename(AccessToFinanceIndex = acc_fin) %>%
+    rename(ExportOrientationIndex = exp_ind) %>%
+    rename(SecurityIndex = sec_ind) %>%
+    rename(RegulationIndex = reg_ind) %>%
+    rename(LaborForceIndex = ed_ind)
 
 
-  # Define some important variables
+  # Define some new variables for regression analysis
+
+  # Heat days difference
+  reg_master$HeatDaysDifference <- reg_master$HeatDays - reg_master$LongRunHeatDays
+
+  # Temp Difference
+  reg_master$TemperatureDifference <- reg_master$Temperature - reg_master$LongRunTemperature
+
+  # Temp volatility Difference
+  reg_master$TemperatureVolatilityDifference <- reg_master$TemperatureVolatility - reg_master$LongRunTemperatureVolatility
 
   # Sales per worker
-  reg_master$sales_per_worker <- reg_master$sales/reg_master$workers
+  reg_master$SalesPerWorker <- reg_master$Sales/reg_master$Workers
 
   # Energy intensity
-  reg_master$energy_intensity <- reg_master$electricity_cost/reg_master$sales
+  reg_master$EnergyIntensity <- reg_master$ElectricityCost/reg_master$Sales
   reg_master <- reg_master %>%
-    mutate(energy_intensity = case_when(
-      energy_intensity < 0 ~ NA,
-      energy_intensity >= 0 ~ energy_intensity
+    mutate(EnergyIntensity = case_when(
+      EnergyIntensity < 0 ~ NA,
+      EnergyIntensity >= 0 ~ EnergyIntensity
     ))
-
-  # Heat days deviation
-  reg_master$heat_days_deviation <- reg_master$heat_days - reg_master$lr_heat_days
-
-  # Temp deviation
-  reg_master$temp_deviation <- reg_master$temp - reg_master$lr_temp
-
-  # Temp volatility deviation
-  reg_master$tempvolatility_deviation <- reg_master$tempvolatility - reg_master$lr_tempvolatility
 
   # Age
   reg_master <- reg_master %>%
-    mutate(age = year - year_founded) %>%
-    mutate(young = case_when(
-      age <= 5 ~ 1,
-      age > 5 ~ 0
+    mutate(Age = Year - YearFounded) %>%
+    mutate(Young = case_when(
+      Age <= 5 ~ 1,
+      Age > 5 ~ 0
     ))
 
   # Size
   reg_master <- reg_master %>%
-    mutate(small = case_when(
-      size == 1 ~ 1,
-      size > 1 ~ 0
+    mutate(Small = case_when(
+      Size == 1 ~ 1,
+      Size > 1 ~ 0
     ))
 
   # Market served
   reg_master <- reg_master %>%
-    mutate(market_served = case_when(
-      market_served == 1 ~ "Local",
-      market_served == 2 ~ "National",
-      market_served == 3 ~ "International"
+    mutate(MarketServed = case_when(
+      MarketServed == 1 ~ "Local",
+      MarketServed == 2 ~ "National",
+      MarketServed == 3 ~ "International"
     ))
-  reg_master$market_served <- as.factor(reg_master$market_served)
+  reg_master$MarketServed <- as.factor(reg_master$MarketServed)
 
   # Inputs domestic
   reg_master <- reg_master %>%
-    mutate(inputs_domestic = case_when(
-      inputs_domestic > 50 ~ 1,
-      inputs_domestic <= 50 ~ 0
+    mutate(DomesticInputs = case_when(
+      DomesticInputs > 50 ~ 1,
+      DomesticInputs <= 50 ~ 0
     ))
 
   # Re-code the binary vars to 0/1
   reg_master <- reg_master %>%
-    mutate(overdraft_facility = case_when(
-      overdraft_facility == 1 ~ 1,
-      overdraft_facility == 2 ~ 0
+    mutate(OverdraftFacility = case_when(
+      OverdraftFacility == 1 ~ 1,
+      OverdraftFacility == 2 ~ 0
     )) %>%
-    mutate(insufficient_water_supply = case_when(
-      insufficient_water_supply == 1 ~ 1,
-      insufficient_water_supply == 2 ~ 0
+    mutate(InsufficientWaterSupply = case_when(
+      InsufficientWaterSupply == 1 ~ 1,
+      InsufficientWaterSupply == 2 ~ 0
     ))
 
   # Convert obstacle vars to dummies
-  obstacle_vars <- grep("^obstacle", names(reg_master), value = TRUE)
+  obstacle_vars <- c("AccessToFinance", "Corruption", "Transport", "BusinessLicensing",
+                     "ElectricityObstacle", "TradeRegulations", "LaborRegulations")
 
   for (var in obstacle_vars) {
     reg_master <- reg_master %>%
@@ -147,23 +284,39 @@ prep_reg_data <- function(subset_data){
       ))
   }
 
-  # Define NAs properly
-  reg_master[reg_master == -9] <- NA
-  reg_master[reg_master == -8] <- NA
-  reg_master[reg_master == -7] <- NA
-
   # Define logged dependent vars
   reg_master <- reg_master %>%
-    mutate(sales_log = log(sales)) %>%
-    mutate(sales_per_worker_log = log(sales_per_worker)) %>%
-    mutate(workers_log = log(workers)) %>%
-    mutate(wages_log = log(wages)) %>%
-    mutate(capital_utilization_log = log(capital_utilization)) %>%
-    mutate(energy_intensity_log = log(energy_intensity))
+    mutate(Sales = case_when(Sales == 0 ~ NA,
+                             Sales != 0 ~ Sales)) %>%
+    mutate(SalesLog = log(Sales)) %>%
+    mutate(SalesPerWorker = case_when(SalesPerWorker == 0 ~ NA,
+                                      SalesPerWorker != 0 ~ SalesPerWorker)) %>%
+    mutate(SalesPerWorkerLog = log(SalesPerWorker)) %>%
+    mutate(Workers = case_when(Workers == 0 ~ NA,
+                               Workers != 0 ~ Workers)) %>%
+    mutate(WorkersLog = log(Workers)) %>%
+    mutate(Wages = case_when(Wages == 0 ~ NA,
+                             Wages != 0 ~ Wages)) %>%
+    mutate(WagesLog = log(Wages)) %>%
+    mutate(CapitalUtilization = case_when(CapitalUtilization == 0 ~ NA,
+                                          CapitalUtilization != 0 ~ CapitalUtilization)) %>%
+    mutate(CapitalUtilizationLog = log(CapitalUtilization)) %>%
+    mutate(EnergyIntensity = case_when(EnergyIntensity == 0 ~ NA,
+                                       EnergyIntensity != 0 ~ EnergyIntensity)) %>%
+    mutate(EnergyIntensityLog = log(EnergyIntensity))
+
+  # Standardize continuous vars - climate and a few firm characteristics
+  standard_vars <- c("HeatDays", "HeatDaysDifference", "Temperature", "TemperatureDifference",
+                     "TemperatureVolatility", "TemperatureVolatilityDifference",
+                     "PowerOutagesLength", "PowerOutagesSalesLosses", "WaterShortagesFrequency",
+                     "WaterShortagesLength", "TaxOfficialsMeetings", "RegulationsTimeSpent",
+                     "InformalPayments", "ManagerialExperience")
+
+  reg_master[standard_vars] <- lapply(reg_master[standard_vars], function(x) x / sd(x, na.rm = TRUE))
 
   # Create grid_ids for unique values of geo-codes
   reg_master <- reg_master %>%
-    mutate(grid_id = dense_rank(temp_deviation))
+    mutate(GridID = dense_rank(TemperatureDifference))
 
   return(reg_master)
 

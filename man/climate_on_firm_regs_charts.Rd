@@ -4,12 +4,12 @@
 \alias{climate_on_firm_regs_charts}
 \title{Charts showing impact of climate variables on firm outcomes}
 \usage{
-climate_on_firm_regs_charts(data, level_or_deviation, output_directory)
+climate_on_firm_regs_charts(data, level_or_difference, output_directory)
 }
 \arguments{
 \item{data}{Regression-ready dataset prepared by 1_prep_reg_data.}
 
-\item{level_or_deviation}{Either "level" or "deviation"; indicates whether for the given climate variable, its survey year level or the deviation of this level from its long-run mean should be used.}
+\item{level_or_difference}{Either "Level" or "Difference"; indicates whether for the given climate variable, its survey year level or the difference of this level from its long-run mean should be used.}
 
 \item{output_directory}{Folder path for where charts will be saved.}
 }
