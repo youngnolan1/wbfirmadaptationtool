@@ -3,6 +3,7 @@
 export(climate_on_firm_regs_charts)
 export(climate_on_firm_regs_tables)
 export(data_subset)
+export(exhaustive_analysis)
 export(interaction_reg_table)
 export(prep_reg_data)
 import(dplyr)

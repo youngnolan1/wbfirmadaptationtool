@@ -15,6 +15,11 @@
 #' @export
 data_subset <- function(data_file_path, filter_value, subset_type){
 
+  # Validate input
+  if (!subset_type %in% c("survey", "country", "region")) {
+    stop("Error: 'subset_type' must be either 'survey', 'country', or 'region'.")
+  }
+
   # Read master geo-linked WBES data
   df <- haven::read_dta(data_file_path) %>%
     dplyr::mutate(idstd = as.numeric(idstd))
@@ -29,8 +34,6 @@ data_subset <- function(data_file_path, filter_value, subset_type){
   } else if (subset_type == "region") {
     subset_df <- df %>%
       dplyr::filter(region == filter_value)
-  } else {
-    stop("Invalid subset_type. Please choose 'survey', 'country', or 'region'.")
   }
 
   # Warning message if fewer than 700 observations

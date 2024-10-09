@@ -28,7 +28,7 @@ interaction_reg_table(
 
 \item{filename}{Name of the file to be saved, excluding the file extension.}
 
-\item{output_directory}{File path for where the table will be saved, ending in .html e.g. "C:/Users/Nolan/Project/table.html".}
+\item{output_directory}{File path for where the table will be saved e.g. "C:/Users/Nolan/Project".}
 
 \item{data}{Regression-ready dataset prepared by 1_prep_reg_data.}
 }

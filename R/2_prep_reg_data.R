@@ -12,6 +12,11 @@
 #' @export
 prep_reg_data <- function(subset_data){
 
+  # Validate input
+  if (!is.data.frame(subset_data)) {
+    stop("Error: Input must be an R data frame.")
+  }
+
   # Define list of relevant regression vars
   regvars <- c("country", "countryname", "year", "idstd", "wt", "region", # Identifier and weights
                "d2", "l1", "n2a", "n2b", "f1", "c6", "k4", # Firm performance indicators
@@ -166,7 +171,7 @@ prep_reg_data <- function(subset_data){
     rename(ElectricityCost = n2b) %>%
     rename(CapitalUtilization = f1) %>%
     rename(PowerOutagesBinary = c6) %>%
-    rename(InvestBinary = k4) %>%
+    rename(InvestmentBinary = k4) %>%
     rename(HeatDays = heat_days) %>%
     rename(LongRunHeatDays = hd80) %>%
     rename(Temperature = mean_2m_temperature) %>%
@@ -306,13 +311,16 @@ prep_reg_data <- function(subset_data){
     mutate(EnergyIntensityLog = log(EnergyIntensity))
 
   # Standardize continuous vars - climate and a few firm characteristics
-  standard_vars <- c("HeatDays", "HeatDaysDifference", "Temperature", "TemperatureDifference",
-                     "TemperatureVolatility", "TemperatureVolatilityDifference",
-                     "PowerOutagesLength", "PowerOutagesSalesLosses", "WaterShortagesFrequency",
+  climate_vars_standard <- c("HeatDays", "HeatDaysDifference", "Temperature", "TemperatureDifference",
+                     "TemperatureVolatility", "TemperatureVolatilityDifference")
+
+  firm_vars_standard <- c("PowerOutagesLength", "PowerOutagesSalesLosses", "WaterShortagesFrequency",
                      "WaterShortagesLength", "TaxOfficialsMeetings", "RegulationsTimeSpent",
                      "InformalPayments", "ManagerialExperience")
 
-  reg_master[standard_vars] <- lapply(reg_master[standard_vars], function(x) x / sd(x, na.rm = TRUE))
+  reg_master[climate_vars_standard] <- lapply(reg_master[climate_vars_standard], function(x) x / sd(x, na.rm = TRUE))
+
+  reg_master[firm_vars_standard] <- lapply(reg_master[firm_vars_standard], function(x) (x - mean(x, na.rm = TRUE)) / sd(x, na.rm = TRUE))
 
   # Create grid_ids for unique values of geo-codes
   reg_master <- reg_master %>%

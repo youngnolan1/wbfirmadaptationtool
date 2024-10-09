@@ -40,7 +40,7 @@ reg_chart <- function(reg_data, indep_climate_var, plot_title){
   # Firm outcomes
   firm_outcomes <- c("SalesLog", "SalesPerWorkerLog", "WagesLog", "WorkersLog",
                     "CapitalUtilizationLog", "EnergyIntensityLog",
-                    "PowerOutagesBinary", "InvestBinary")
+                    "PowerOutagesBinary", "InvestmentBinary")
 
   # Empty dataframe for results
   graph_data <- data.frame(
@@ -67,16 +67,31 @@ reg_chart <- function(reg_data, indep_climate_var, plot_title){
 
   }
 
-  # Plot the coefficients and confidence intervals for each firm outcome together on one chart
-  plot <- ggplot(graph_data, aes(x = firm_outcome, y = coefficient)) + # Initialize ggplot with 'graph_data' dataframe, mapping 'firm_outcome' to the x-axis and 'coefficient' to the y-axis
-    geom_bar(stat = "identity", fill = "skyblue", color = "black") + # Add a bar plot with 'coefficient' values as the height of the bars, fill color as sky blue, and bar borders in black
-    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, color = "black") + # Add error bars based on lower and upper confidence intervals ('lower_ci' and 'upper_ci'), with bar width of 0.2
-    theme_minimal() + # Apply the 'minimal' theme for a clean, simple look with minimal gridlines and axis lines
-    theme(axis.title.x = element_blank(), # Remove the x-axis title (label)
-          axis.text.x = element_text(size = 14, angle = 45), # Customize x-axis text: set font size to 14 and rotate labels 45 degrees
-          axis.title.y = element_blank(), # Remove the y-axis title (label)
-          plot.title = element_blank()) # Remove the plot title
+  # Add statistical significance column
+  graph_data$significant <- ifelse(graph_data$lower_ci <= 0 & graph_data$upper_ci >= 0, "No", "Yes")
 
+
+  # Updated plot with all bars in the same color
+  plot <- ggplot(graph_data, aes(x = firm_outcome, y = coefficient)) +
+    geom_bar(stat = "identity", aes(fill = significant), color = "black", width = 0.6) + # Conditional color for bars
+    geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), width = 0.2, color = "black") + # Error bars
+    scale_fill_manual(values = c("Yes" = "orange", "No" = "grey")) + # Assign grey if CI contains zero, orange otherwise
+    geom_hline(yintercept = 0, color = "black", size = 0.8) + # Add a horizontal line at zero
+    theme_minimal() + # Minimal theme
+    theme(
+      axis.title.x = element_blank(), # Remove x-axis title
+      axis.text.x = element_text(size = 14, angle = 45, hjust = 1), # Rotate x-axis labels
+      axis.title.y = element_text(size = 16, face = "bold", margin = margin(r = 10)), # Bold y-axis title
+      axis.text.y = element_text(size = 14), # Increase y-axis text size
+      plot.title = element_text(size = 18, face = "bold", hjust = 0.5), # Center and bold title
+      legend.position = "none", # Remove legend
+      panel.grid = element_blank(), # Remove all gridlines
+      axis.line = element_line(color = "black", size = 0.8), # Add black axis lines
+      axis.line.x = element_line(color = "black", size = 0.8), # Add x-axis line
+      axis.line.y = element_line(color = "black", size = 0.8) # Add y-axis line
+    ) +
+    labs(y = "Coefficient", # Y-axis label
+         title = plot_title) # Title
 
 
   return(plot)
@@ -115,14 +130,14 @@ reg_table <- function(reg_data, indep_climate_var, table_title, html_or_tex, dir
   pwr_se <- sqrt(diag(vcovHC(pwr, type = "HC1", cluster = ~reg_data$GridID)))
 
   # Investment in fixed assets (k4)
-  inv <- reg_model(reg_data, "InvestBinary", indep_climate_var)
+  inv <- reg_model(reg_data, "InvestmentBinary", indep_climate_var)
   inv_se <- sqrt(diag(vcovHC(inv, type = "HC1", cluster = ~reg_data$GridID)))
 
   # The note under the regression results table changes depending on level or difference
   if (grepl("Level", table_title)){
-    stargazer_note <- c("Each firm performance variable is regressed on the given climate variable, along with fixed effects (FE) which depend on data coverage. The climate variable is in levels - the local average in the FY of the relevant survey. We report standard errors clustered at the climate variable level (corresponding to climate data grids) in parentheses.")
+    stargazer_note <- c("Each firm performance variable is regressed on the given climate variable, along with fixed effects (FE) which depend on data coverage. The climate variable is in levels - the local average in the FY of the relevant survey. Coefficients show estimated effects of a one standard deviation change in the climate variable. We report standard errors clustered at the climate variable level (corresponding to climate data grids) in parentheses.")
   } else {
-    stargazer_note <- c("Each firm performance variable is regressed on the given climate variable, along with fixed effects (FE) which depend on data coverage. The climate variable is in differences - the local average temperature in the FY of the relevant survey minus the local long-run mean, calculated for the 1980-2008 period. We report standard errors clustered at the climate variable level (corresponding to climate data grids) in parentheses.")
+    stargazer_note <- c("Each firm performance variable is regressed on the given climate variable, along with fixed effects (FE) which depend on data coverage. The climate variable is in differences - the local average in the FY of the relevant survey minus the local long-run mean, calculated for the 1980-2008 period. Coefficients show estimated effects of a one standard deviation change in the climate variable. We report standard errors clustered at the climate variable level (corresponding to climate data grids) in parentheses.")
   }
 
   # Use stargazer to combine all models into a results table with clustered SEs
@@ -167,15 +182,46 @@ reg_table <- function(reg_data, indep_climate_var, table_title, html_or_tex, dir
 #' @export
 climate_on_firm_regs_charts <- function(data, level_or_difference, output_directory){
 
+  # Validate inputs
+  if (!is.data.frame(data)) {
+    stop("Error: Input must be an R data frame.")
+  }
+
+  if (!is.character(level_or_difference) || length(level_or_difference) != 1) {
+    stop("Error: 'level_or_difference' must be a single string.")
+  }
+
+  if (!level_or_difference %in% c("Level", "Difference")) {
+    stop("Error: 'level_or_difference' must be either 'Level' or 'Difference'.")
+  }
+
+  if (!is.character(output_directory) || length(output_directory) != 1) {
+    stop("Error: 'output_directory' must be a single string.")
+  }
+
   # Define the climate variable based on the level_or_difference argument
-  heat_days_var <- ifelse(level_or_difference == "Difference", "HeatDaysDifference", "HeatDays")
-  temp_var <- ifelse(level_or_difference == "Difference", "TemperatureDifference", "Temperature")
-  tempvol_var <- ifelse(level_or_difference == "Difference", "TemperatureVolatilityDifference", "TemperatureVolatility")
+  heat_days_var <- if (level_or_difference == "Level") {
+    "HeatDays"
+  } else if (level_or_difference == "Difference") {
+    "HeatDaysDifference"
+  }
+
+  temp_var <- if (level_or_difference == "Level") {
+    "Temperature"
+  } else if (level_or_difference == "Difference") {
+    "TemperatureDifference"
+  }
+
+  tempvol_var <- if (level_or_difference == "Level") {
+    "TemperatureVolatility"
+  } else if (level_or_difference == "Difference") {
+    "TemperatureVolatilityDifference"
+  }
 
   # Create the plots
-  hd_plot <- reg_chart(data, heat_days_var, paste0("Number of Heat Days (", level_or_difference, ")"))
-  temp_plot <- reg_chart(data, temp_var, paste0("Temperature (", level_or_difference, ")"))
-  tempvol_plot <- reg_chart(data, tempvol_var, paste0("Temperature Volatility (", level_or_difference, ")"))
+  hd_plot <- reg_chart(data, heat_days_var, paste0("Number of Heat Days (", level_or_difference, ") - Effect on Firm Outcomes"))
+  temp_plot <- reg_chart(data, temp_var, paste0("Temperature (", level_or_difference, ") - Effect on Firm Outcomes"))
+  tempvol_plot <- reg_chart(data, tempvol_var, paste0("Temperature Volatility (", level_or_difference, ") - Effect on Firm Outcomes"))
 
   # Ensure the output directory exists
   if (!dir.exists(output_directory)) {
@@ -214,10 +260,74 @@ climate_on_firm_regs_charts <- function(data, level_or_difference, output_direct
 #' @export
 climate_on_firm_regs_tables <- function(data, level_or_difference, html_or_tex, output_directory){
 
+  # Validate inputs
+  if (!is.data.frame(data)) {
+    stop("Error: Input must be an R data frame.")
+  }
+
+  if (!is.character(level_or_difference) || length(level_or_difference) != 1) {
+    stop("Error: 'level_or_difference' must be a single string.")
+  }
+
+  if (!level_or_difference %in% c("Level", "Difference")) {
+    stop("Error: 'level_or_difference' must be either 'Level' or 'Difference'.")
+  }
+
+  if (!is.character(html_or_tex) || length(html_or_tex) != 1) {
+    stop("Error: 'html_or_tex' must be a single string.")
+  }
+
+  if (!html_or_tex %in% c("html", "tex")) {
+    stop("Error: 'html_or_tex' must be either 'html' or 'tex'.")
+  }
+
+  if (!is.character(output_directory) || length(output_directory) != 1) {
+    stop("Error: 'output_directory' must be a single string.")
+  }
+
   # Define the climate variable based on the level_or_difference argument
-  heat_days_var <- ifelse(level_or_difference == "Difference", "HeatDaysDifference", "HeatDays")
-  temp_var <- ifelse(level_or_difference == "Difference", "TemperatureDifference", "Temperature")
-  tempvol_var <- ifelse(level_or_difference == "Difference", "TemperatureVolatilityDifference", "TemperatureVolatility")
+  heat_days_var <- if (level_or_difference == "Level") {
+    "HeatDays"
+  } else if (level_or_difference == "Difference") {
+    "HeatDaysDifference"
+  }
+
+  temp_var <- if (level_or_difference == "Level") {
+    "Temperature"
+  } else if (level_or_difference == "Difference") {
+    "TemperatureDifference"
+  }
+
+  tempvol_var <- if (level_or_difference == "Level") {
+    "TemperatureVolatility"
+  } else if (level_or_difference == "Difference") {
+    "TemperatureVolatilityDifference"
+  }
+
+  # Define the climate variable based on the level_or_difference argument
+  heat_days_var <- if (level_or_difference == "Level") {
+    "HeatDays"
+  } else if (level_or_difference == "Difference") {
+    "HeatDaysDifference"
+  } else {
+    stop("Error: 'level_or_difference' must be either 'Level' or 'Difference'.")
+  }
+
+  temp_var <- if (level_or_difference == "Level") {
+    "Temperature"
+  } else if (level_or_difference == "Difference") {
+    "TemperatureDifference"
+  } else {
+    stop("Error: 'level_or_difference' must be either 'Level' or 'Difference'.")
+  }
+
+  tempvol_var <- if (level_or_difference == "Level") {
+    "TemperatureVolatility"
+  } else if (level_or_difference == "Difference") {
+    "TemperatureVolatilityDifference"
+  } else {
+    stop("Error: 'level_or_difference' must be either 'Level' or 'Difference'.")
+  }
 
   # Create the tables
   hd_table <- reg_table(data, heat_days_var, paste0("Number of Heat Days (", level_or_difference, ")"), html_or_tex, paste0(output_directory, "/HeatDays_table_", level_or_difference, ".", html_or_tex))
