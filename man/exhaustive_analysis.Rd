@@ -19,6 +19,8 @@ exhaustive_analysis(
 
 \item{subset_type}{A string that indicates the type of subsetting: "survey", "country", or "region".}
 
+\item{html_or_tex}{Either "html" or "tex"; indicates whether the table will be saved in .html or .tex format.}
+
 \item{output_directory}{A string containing the directory in which the results will be saved.}
 }
 \value{

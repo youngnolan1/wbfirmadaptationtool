@@ -39,7 +39,7 @@ reg_chart <- function(reg_data, indep_climate_var, plot_title){
 
   # Firm outcomes
   firm_outcomes <- c("SalesLog", "SalesPerWorkerLog", "WagesLog", "WorkersLog",
-                    "CapitalUtilizationLog", "EnergyIntensityLog",
+                    "CapacityUtilizationLog", "EnergyIntensityLog",
                     "PowerOutagesBinary", "InvestmentBinary")
 
   # Empty dataframe for results
@@ -86,9 +86,9 @@ reg_chart <- function(reg_data, indep_climate_var, plot_title){
       plot.title = element_text(size = 18, face = "bold", hjust = 0.5), # Center and bold title
       legend.position = "none", # Remove legend
       panel.grid = element_blank(), # Remove all gridlines
-      axis.line = element_line(color = "black", size = 0.8), # Add black axis lines
-      axis.line.x = element_line(color = "black", size = 0.8), # Add x-axis line
-      axis.line.y = element_line(color = "black", size = 0.8) # Add y-axis line
+      axis.line = element_line(color = "black", linewidth = 0.8), # Add black axis lines
+      axis.line.x = element_line(color = "black", linewidth = 0.8), # Add x-axis line
+      axis.line.y = element_line(color = "black", linewidth = 0.8) # Add y-axis line
     ) +
     labs(y = "Coefficient", # Y-axis label
          title = plot_title) # Title
@@ -117,8 +117,8 @@ reg_table <- function(reg_data, indep_climate_var, table_title, html_or_tex, dir
   e <- reg_model(reg_data, "WorkersLog", indep_climate_var)
   e_se <- sqrt(diag(vcovHC(e, type = "HC1", cluster = ~reg_data$GridID)))
 
-  # Capital utilization (f1)
-  capu <- reg_model(reg_data, "CapitalUtilizationLog", indep_climate_var)
+  # Capacity utilization (f1)
+  capu <- reg_model(reg_data, "CapacityUtilizationLog", indep_climate_var)
   capu_se <- sqrt(diag(vcovHC(capu, type = "HC1", cluster = ~reg_data$GridID)))
 
   # Energy intensity (n2b / d2)
@@ -149,7 +149,7 @@ reg_table <- function(reg_data, indep_climate_var, table_title, html_or_tex, dir
             out = directory, # Save file to defined path
             title = paste0("Effect of ", table_title, " on Firm Performance"), # Define table title
             dep.var.labels = c("Sales (log)", "Productivity (log)", "Wages (log)",
-                               "Employment (log)", "Capital Utilization (log)",
+                               "Employment (log)", "Capacity Utilization (log)",
                                "Energy Intensity (log)", "Power Outages",
                                "Investment in Fixed Assets"),
             omit.stat = c("f", "ser"), # Customize which statistics to omit

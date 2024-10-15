@@ -23,12 +23,12 @@ prep_reg_data <- function(subset_data){
                "heat_days", "hd80", "mean_2m_temperature", "mean80", "sd_2m_temperature", "sd80", # Climate variables
                "a2x", "stra_sector", # Region and sector
                "b5", "size", "e1", # Age, size, and market served
-               "k30", "j30c", "j30f", "d30b", "l30a", "sec_ind", # Business environment variables
-               "k6", "k7", "k8", "acc_fin", # Banking variables
+               "k30", "j30c", "j30f", "d30b", "i3", "i30", "l30b", "sec_ind", # Business environment variables
+               "k3a", "k6", "k7", "k8", "acc_fin", # Banking variables
                "c8", "c9a", "c16", "c17", "c30a", "d30a", "c15", "elec", # Infrastructure variables
                "d12a", "exp_ind", # Value chains
-               "j4", "j2", "j7b", "reg_ind", # Freq meetings tax officials / % time spent complying with regulations / informal payments
-               "b7", "b7a", "ed_ind"  # Management and labor variables
+               "j3", "j4", "j2", "j7b", "reg_ind", # Freq meetings tax officials / % time spent complying with regulations / informal payments
+               "b7", "b7a", "ed_ind", "l30a", "l10"  # Management and labor variables
   )
 
   # Define zeroes and NAs correctly
@@ -169,7 +169,7 @@ prep_reg_data <- function(subset_data){
     rename(Workers = l1) %>%
     rename(Wages = n2a) %>%
     rename(ElectricityCost = n2b) %>%
-    rename(CapitalUtilization = f1) %>%
+    rename(CapacityUtilization = f1) %>%
     rename(PowerOutagesBinary = c6) %>%
     rename(InvestmentBinary = k4) %>%
     rename(HeatDays = heat_days) %>%
@@ -181,11 +181,16 @@ prep_reg_data <- function(subset_data){
     rename(YearFounded = b5) %>%
     rename(Size = size) %>%
     rename(MarketServed = e1) %>%
-    rename(AccessToFinance = k30) %>%
-    rename(BusinessLicensing = j30c) %>%
-    rename(Corruption = j30f) %>%
-    rename(TradeRegulations = d30b) %>%
-    rename(LaborRegulations = l30a) %>%
+    rename(AccessToFinanceObstacle = k30) %>%
+    rename(BusinessLicensingObstacle = j30c) %>%
+    rename(CorruptionObstacle = j30f) %>%
+    rename(TradeRegulationsObstacle = d30b) %>%
+    rename(CrimeObstacle = i30) %>%
+    rename(LaborRegulationsObstacle = l30a) %>%
+    rename(WorkforceEducationObstacle = l30b) %>%
+    rename(TrainingPrograms = l10) %>%
+    rename(TheftLosses = i3) %>%
+    rename(WorkingCapitalFromInternal = k3a) %>%
     rename(CheckingOrSavingsAccount = k6) %>%
     rename(OverdraftFacility = k7) %>%
     rename(CreditFromFinancialInstitution = k8) %>%
@@ -194,9 +199,10 @@ prep_reg_data <- function(subset_data){
     rename(WaterShortagesFrequency = c16) %>%
     rename(WaterShortagesLength = c17) %>%
     rename(ElectricityObstacle = c30a) %>%
-    rename(Transport = d30a) %>%
+    rename(TransportObstacle = d30a) %>%
     rename(InsufficientWaterSupply = c15) %>%
     rename(DomesticInputs = d12a) %>%
+    rename(TaxInspectionBinary = j3) %>%
     rename(TaxOfficialsMeetings = j4) %>%
     rename(RegulationsTimeSpent = j2) %>%
     rename(InformalPayments = j7b) %>%
@@ -275,8 +281,8 @@ prep_reg_data <- function(subset_data){
     ))
 
   # Convert obstacle vars to dummies
-  obstacle_vars <- c("AccessToFinance", "Corruption", "Transport", "BusinessLicensing",
-                     "ElectricityObstacle", "TradeRegulations", "LaborRegulations")
+  obstacle_vars <- c("AccessToFinanceObstacle", "CorruptionObstacle", "TransportObstacle", "BusinessLicensingObstacle",
+                     "ElectricityObstacle", "TradeRegulationsObstacle", "LaborRegulationsObstacle", "CrimeObstacle", "WorkforceEducationObstacle")
 
   for (var in obstacle_vars) {
     reg_master <- reg_master %>%
@@ -303,9 +309,9 @@ prep_reg_data <- function(subset_data){
     mutate(Wages = case_when(Wages == 0 ~ NA,
                              Wages != 0 ~ Wages)) %>%
     mutate(WagesLog = log(Wages)) %>%
-    mutate(CapitalUtilization = case_when(CapitalUtilization == 0 ~ NA,
-                                          CapitalUtilization != 0 ~ CapitalUtilization)) %>%
-    mutate(CapitalUtilizationLog = log(CapitalUtilization)) %>%
+    mutate(CapacityUtilization = case_when(CapacityUtilization == 0 ~ NA,
+                                          CapacityUtilization != 0 ~ CapacityUtilization)) %>%
+    mutate(CapacityUtilizationLog = log(CapacityUtilization)) %>%
     mutate(EnergyIntensity = case_when(EnergyIntensity == 0 ~ NA,
                                        EnergyIntensity != 0 ~ EnergyIntensity)) %>%
     mutate(EnergyIntensityLog = log(EnergyIntensity))
@@ -316,7 +322,7 @@ prep_reg_data <- function(subset_data){
 
   firm_vars_standard <- c("PowerOutagesLength", "PowerOutagesSalesLosses", "WaterShortagesFrequency",
                      "WaterShortagesLength", "TaxOfficialsMeetings", "RegulationsTimeSpent",
-                     "InformalPayments", "ManagerialExperience")
+                     "InformalPayments", "ManagerialExperience", "WorkingCapitalFromInternal")
 
   reg_master[climate_vars_standard] <- lapply(reg_master[climate_vars_standard], function(x) x / sd(x, na.rm = TRUE))
 

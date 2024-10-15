@@ -37,3 +37,12 @@ climate_on_firm_regs_tables(mena_region, "level", "html", "C:/Users/young/OneDri
 # Script 4
 interaction_reg_table(mexico_survey_reg, "SalesLog", "HeatDays", "Difference", c("Young", "Small"), "html",
                       "TestTable", "C:/Users/young/OneDrive/Documents/test")
+
+# Script 5
+exhaustive_analysis("C:/Users/young/OneDrive/Escritorio/wbfirmadaptation_snapshots/master.dta",
+                    "MEA",
+                    "region",
+                    "html",
+                    "C:/Users/young/OneDrive/Documents/test")
+
+

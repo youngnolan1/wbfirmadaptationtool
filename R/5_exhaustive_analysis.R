@@ -6,23 +6,41 @@ create_directories <- function(base_dir, sub_dirs) {
     stop("Error: 'base_dir' and 'sub_dirs' must be character strings.")
   }
 
-  # Create base directory if it doesn't exist
-  if (!dir.exists(base_dir)) {
-    dir.create(base_dir, recursive = TRUE)
+  # Create the full paths for all sub-directories
+  sub_dir_paths <- file.path(base_dir, sub_dirs)
+
+  # Check if any of the sub-directories or base directory already exist
+  existing_dirs <- sub_dir_paths[dir.exists(sub_dir_paths)]  # Check sub-directories
+  if (dir.exists(base_dir)) {
+    existing_dirs <- c(base_dir, existing_dirs)  # Include the base directory if it exists
   }
 
-  # Create each sub-directory
-  for (sub_dir in sub_dirs) {
-    # Construct the full path
-    full_path <- file.path(base_dir, sub_dir)
+  # If any directories already exist, prompt the user
+  if (length(existing_dirs) > 0) {
+    response <- readline(paste("Some directories already exist. Overwrite all? (y/n): "))
 
-    # Create the sub-directory
-    if (!dir.exists(full_path)) {
-      dir.create(full_path, recursive = TRUE)
+    # If the user chooses not to overwrite, exit the function
+    if (tolower(response) != "y") {
+      stop("Operation cancelled. No directories were overwritten.")
     }
+
+    # If the user confirms, remove the base directory and everything inside it
+    unlink(base_dir, recursive = TRUE)
+    message("Existing directories removed.")
   }
 
+  # Create the base directory
+  dir.create(base_dir, recursive = TRUE)
+
+  # Create all sub-directories
+  for (sub_dir in sub_dirs) {
+    dir.create(file.path(base_dir, sub_dir), recursive = TRUE)
+  }
+
+  message("Directories created successfully.")
 }
+
+
 
 
 
@@ -42,6 +60,7 @@ create_directories <- function(base_dir, sub_dirs) {
 #' @param data_file_path A string of the user's file path to the raw data.
 #' @param filter_value A string that indicates the value of the country, survey (CountryYear), or region the user wants to analyze.
 #' @param subset_type A string that indicates the type of subsetting: "survey", "country", or "region".
+#' @param html_or_tex Either "html" or "tex"; indicates whether the table will be saved in .html or .tex format.
 #' @param output_directory A string containing the directory in which the results will be saved.
 #'
 #' @return All possible analysis (tables and charts from regressions) offered by the wbfirmadaptation package saved in output_directory.
@@ -89,17 +108,17 @@ exhaustive_analysis <- function(data_file_path, filter_value, subset_type, html_
   create_directories(output_directory, subdirectories)
 
   # --- Step 1. Subset data ---
-  data <- wbfirmadaptationtool::subset_data(data_file_path, filter_value, subset_type)
+  data <- data_subset(data_file_path, filter_value, subset_type)
 
   # --- Step 2. Prepare data for regressions ---
-  reg_data <- wbfirmadaptationtool::prep_reg_data(data)
+  reg_data <- prep_reg_data(data)
 
   # --- Step 3. Climate impact on firm performance regressions ---
 
   # Charts
   for (level_or_difference in c("Level", "Difference")){
 
-    wbfirmadaptationtool::climate_on_firm_regs_charts(data = reg_data,
+    climate_on_firm_regs_charts(data = reg_data,
                                                       level_or_difference = level_or_difference,
                                                       output_directory = paste0(output_directory, "/Climate_Impact_On_Firm_Performance/Charts"))
 
@@ -108,7 +127,7 @@ exhaustive_analysis <- function(data_file_path, filter_value, subset_type, html_
   # Tables
   for (level_or_difference in c("Level", "Difference")){
 
-    wbfirmadaptationtool::climate_on_firm_regs_tables(data = reg_data,
+    climate_on_firm_regs_tables(data = reg_data,
                                                       level_or_difference = level_or_difference,
                                                       html_or_tex = html_or_tex,
                                                       output_directory = paste0(output_directory, "/Climate_Impact_On_Firm_Performance/Tables"))
@@ -118,7 +137,12 @@ exhaustive_analysis <- function(data_file_path, filter_value, subset_type, html_
   # --- Step 4. Interactions with firm characteristics/policy vars
 
   # Characteristics and policy vars to include in regs
-  characteristics_policy_vars <- c("Young", "Small")
+  characteristics_policy_vars <- c("Young", "Small", "MarketServed", # Firm characteristics
+                                   "AccessToFinanceIndex", "RegulationIndex", "LaborForceIndex", # Indices
+                                   "SecurityIndex", "ExportOrientationIndex", "ElectricityIndex", # Indices
+                                   "Transport", "DomesticInputs", # Transport and value chains
+                                   "ManagerialExperience", "FemaleManager" # Management
+                                   )
 
   # Loop through dependent variables
   for (dependent_var in c("Sales", "SalesPerWorker", "Investment")){
@@ -135,7 +159,7 @@ exhaustive_analysis <- function(data_file_path, filter_value, subset_type, html_
       # Loop through using levels or differences
       for (level_or_difference in c("Level", "Difference")){
 
-        wbfirmadaptationtool::interaction_reg_table(reg_data = reg_data,
+        interaction_reg_table(reg_data = reg_data,
                                                     firm_outcome = paste0(dependent_var, var_name_append),
                                                     climate_var = climate_var,
                                                     level_or_difference = level_or_difference,
@@ -146,9 +170,6 @@ exhaustive_analysis <- function(data_file_path, filter_value, subset_type, html_
       }
     }
   }
-
-
-
 }
 
 

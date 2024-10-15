@@ -1,7 +1,7 @@
 #' @title Subset master geo-linked WBES dataset based on survey, country, or region.
 #'
 #' @description
-#' The data_subset() function subsets the raw master dataset based on the user's chosen type: 'survey', 'country', or 'region'.
+#' The subset_data() function subsets the raw master dataset based on the user's chosen type: 'survey', 'country', or 'region'.
 #'
 #' @import haven
 #' @import dplyr
@@ -13,7 +13,7 @@
 #' @return The subsetted dataset as a dataframe (save to object and use as input in other wbfirmadaptation functions).
 #'
 #' @export
-data_subset <- function(data_file_path, filter_value, subset_type){
+subset_data <- function(data_file_path, filter_value, subset_type){
 
   # Validate input
   if (!subset_type %in% c("survey", "country", "region")) {

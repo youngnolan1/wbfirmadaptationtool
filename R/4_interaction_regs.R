@@ -46,7 +46,7 @@ interaction_reg <- function(reg_data, firm_outcome, climate_var, firm_characteri
 #'
 #' @import stargazer
 #'
-#' @param data Regression-ready dataset prepared by 1_prep_reg_data.
+#' @param data Regression-ready dataset prepared by prep_reg_data.
 #' @param firm_outcome Dependent variable passed as a string, see guidance note for options.
 #' @param climate_var Independent climate variable passed as a string, options include "Temperature", "TemperatureVolatility", and "HeatDays".
 #' @param level_or_difference Either "Level" or "Difference"; indicates whether for the given climate variable, its survey year level or the difference of this level from its long-run mean should be used.
@@ -60,10 +60,10 @@ interaction_reg <- function(reg_data, firm_outcome, climate_var, firm_characteri
 #' @note Remember to use forward slashes "/" in the folder path.
 #'
 #' @export
-interaction_reg_table <- function(reg_data, firm_outcome, climate_var, level_or_difference, firm_characteristics, html_or_tex, filename, output_directory){
+interaction_regs_tables <- function(reg_data, firm_outcome, climate_var, level_or_difference, firm_characteristics, html_or_tex, filename, output_directory){
 
   # Validate inputs
-  if (!is.data.frame(data)) {
+  if (!is.data.frame(reg_data)) {
     stop("Error: Input must be an R data frame.")
   }
 
